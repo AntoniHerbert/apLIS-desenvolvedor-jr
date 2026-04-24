@@ -1,98 +1,59 @@
-# Comunicação
+## 🚀 Tecnologias e Arquitetura
 
-Toda a comunicação a respeito deste teste deve ser feita através do email thiago.barros@prestadores.aplis.inf.br. 
+O ecossistema é composto por 4 contentainers principais:
 
-# Entrega
+* **Frontend (UI):** React.js + Vite (Porta `5173`)
+* **Microsserviço de Pacientes:** Node.js + Express (Porta `3000`)
+    * *Destaque:* Encriptação determinística de CPF (AES-256) nativa para LGPD e segurança com `helmet`.
+* **Microsserviço de Médicos:** PHP 8.2 + Apache + PDO (Porta `8000`)
+* **Base de Dados:** MySQL 8.0 (Porta `3306`)
 
-- O prazo para entrega do teste é de 10 dias após seu envio ao candidato.
-- O teste pode ser entregue parcialmente, porém a porcentagem de aderencia ao escopo total será avaliada.
+---
 
-# Recomendações
+## 🔒 Funcionalidades de Segurança
+* **Conformidade com LGPD:** Os CPFs dos pacientes são encriptados na base de dados (AES-256-CBC) garantindo que, em caso de fuga de dados, as informações sensíveis permanecem ilegíveis.
+* **Whitelisting de CORS:** As APIs estão bloqueadas para aceitar apenas requisições da origem do Frontend (`http://localhost:5173` ou domínio via variável de ambiente).
 
-- Recomendamos uso de arquitetura MVC em ambos os backends.
-- Recomendamos que o pull request tem a menor quantidade possível de arquivos para cumprir o desafio.
+---
 
-## Teste Prático — Desenvolvedor Junior
+## 🛠️ Como Executar o Projeto Localmente
 
-- Para iniciar crie um fork deste repositório para seu perfil.
-- Para entregar crie uma solicitação pull request.
+### Pré-requisitos
+* [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/) instalados na sua máquina.
 
-O teste consiste no desenvolvimento de uma aplicação fullstack simples, composta por um frontend em React (SPA), dois backends independentes e um banco de dados MySQL compartilhado.
+### Passo a Passo
 
-O backend em PHP será responsável pelo cadastro e listagem de médicos, enquanto o backend em Node.js será responsável pelo cadastro e listagem de pacientes. Cada backend deve expor endpoints REST para criação e consulta de seus respectivos dados, garantindo que as respostas estejam em formato JSON consistente.
+1.  **Clone o repositório** para a sua máquina local:
 
-O primeiro backend deverá ser desenvolvido em PHP e contemplar as seguintes rotas:
-- `GET /api/v1/medicos`: obtém todos os médicos retornando conforme exemplo abaixo: 
+2.  **Inicie a infraestrutura com o Docker:**
+    Este comando vai baixar as imagens, construir os serviços, injetar o ficheiro `init.sql` no MySQL e levantar a aplicação.
+    ```bash
+    docker-compose up -d --build
+    ```
 
-```json
-    [
-        {
-            "id": 1,
-            "nome": "João da Silva",
-            "CRM": "123456",
-            "UFCRM": "CE"
-        },
-        {
-            "id": 2,
-            "nome": "Francisco Pereira",
-            "CRM": "876543",
-            "UFCRM": "CE"
-        }
-    ]
-```
+3.  **Abra a Aplicação:**
+    * Abra o seu navegador e vá a: `http://localhost:5173`
 
-- `POST /api/v1/medicos`: cria um novo médico enviando o body do exemplo abaixo e retornando a mensagem "Médico criado com sucesso".
+---
 
-```json
-    {
-        "id": 1,
-        "nome": "João da Silva",
-        "CRM": "123456",
-        "UFCRM": "CE"
-    }
-```
+## 📂 Estrutura de Diretórios (Clean Architecture)
 
-O segundo backend deverá ser desenvolvido em NodeJS (JavaScript) e contemplar as seguintes rotas:
-- `GET /api/v1/pacientes`: obtém todos os pacientes retornando conforme exemplo abaixo: 
+A aplicação segue rigorosamente a separação de responsabilidades. Ambos os backends partilham da mesma filosofia arquitetural:
 
-```json
-    [
-        {
-            "id": 1,
-            "nome": "João da Silva",
-            "dataNascimento": "2026-01-01",
-            "carteirinha": "123456",
-            "cpf": "12345678909"
-        },
-        {
-            "id": 2,
-            "nome": "Francisco Pereira",
-            "carteirinha": "876543",
-            "cpf": "12345678901"
-        }
-    ]
-```
-
-- `POST /api/v1/pacientes`: cria um novo paciente enviando o body do exemplo abaixo e retornando a mensagem "Paciente criado com sucesso".
-
-```json
-    {
-        "id": 1,
-        "nome": "João da Silva",
-        "dataNascimento": "2026-01-01",
-        "carteirinha": "123456",
-        "cpf": "12345678909"
-    },
-```
-
-O frontend deve consumir ambas as APIs, permitindo visualizar listas de médicos e pacientes separadamente, além de possibilitar o cadastro de novos registros. O candidato deverá organizar o projeto em três partes (frontend, backend Node e backend PHP), garantir a integração entre as camadas e manter o código legível e funcional.
-
-A tela deve mostrar um menu sidebar à esquerda com duas opções (Médicos e Pacientes), que quando clicado abre a tela de listagem e criação dos registros.
-
-A avaliação considerará principalmente o funcionamento ponta a ponta da aplicação, a correta integração entre os serviços, a organização do código e, como diferencial, boas práticas, tratamento de erros e clareza na documentação. O tempo estimado para conclusão é de 6 a 10 horas.
-
-
-# Desafio extra 
-
-- Crie as demais operações CRUD
-- Deixe o projeto pronto para multi linguagem, tanto no backend quanto no frontend.
+```text
+/aplis-clinic
+├── /app                  # Frontend React (Vite)
+├── /backendjs            # API Node.js (Pacientes)
+│   ├── /src
+│   │   ├── /controllers  # Regras de Negócio e Validações
+│   │   ├── /models       # Comunicação exclusiva com MySQL
+│   │   └── /routes       # Mapeamento de Endpoints HTTP
+│   └── index.js          # Entrypoint e Middlewares (Helmet/CORS)
+├── /backendphp           # API PHP (Médicos)
+│   ├── /src
+│   │   ├── /Controller   # Regras de Negócio e Tratamento de Exceções
+│   │   ├── /Model        # Queries e Prepared Statements
+│   │   └── /routes       # Roteamento de Requests
+│   └── index.php         # Front Controller e Headers HTTP
+├── docker-compose.yml    # Orquestração dos Containers
+└── init.sql              # Estrutura e Criação das Tabelas MySQL

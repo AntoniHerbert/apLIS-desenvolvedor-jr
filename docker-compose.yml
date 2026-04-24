@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Base de Dados Partilhada
+  db:
+    image: mysql:8.0
+    container_name: aplis_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: aplis_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Backend PHP (API Médicos)
+  backend-php:
+    build: 
+      context: ./backendphp
+      dockerfile: Dockerfile
+    container_name: aplis_php
+    ports:
+      - "8000:80"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: aplis_db
+      FRONTEND_URL: http://localhost:5173 
+    volumes:
+      - ./backendphp:/var/www/html
+    depends_on:
+      - db
+
+  # Backend Node.js (API Pacientes)
+  backend-node:
+    build: 
+      context: ./backendjs
+      dockerfile: Dockerfile
+    container_name: aplis_node
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: aplis_db
+      FRONTEND_URL: http://localhost:5173 
+    volumes:
+      - ./backendjs:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+
+  # Frontend React
+  frontend:
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: aplis_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./app:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - VITE_API_MEDICOS=http://localhost:8000/api/v1/medicos
+      - VITE_API_PACIENTES=http://localhost:3000/api/v1/pacientes
+    depends_on:
+      - backend-php
+      - backend-node
