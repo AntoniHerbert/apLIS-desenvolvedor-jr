@@ -24,14 +24,19 @@ O ecossistema é composto por 4 contentainers principais:
 ### Passo a Passo
 
 1.  **Clone o repositório** para a sua máquina local:
+   
+3.  **Crie um .env** ele precisa ter uma senha pro banco de dados como:
+    ```bash
+    MYSQL_ROOT_PASSWORD=root
+    ```
 
-2.  **Inicie a infraestrutura com o Docker:**
+5.  **Inicie a infraestrutura com o Docker:**
     Este comando vai baixar as imagens, construir os serviços, injetar o ficheiro `init.sql` no MySQL e levantar a aplicação.
     ```bash
     docker-compose up -d --build
     ```
 
-3.  **Abra a Aplicação:**
+6.  **Abra a Aplicação:**
     * Abra o seu navegador e vá a: `http://localhost:5173`
 
 ---
